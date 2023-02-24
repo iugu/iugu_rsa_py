@@ -53,9 +53,15 @@ class IUGU_RSA_SAMPLE:
     def getLastResponse(self):
         return self.__last_response
 
+    __last_response_code = 0
+
+    def getLastResponseCode(self):
+        return self.__last_response_code
+
     # Link de referência: https://dev.iugu.com/reference/autentica%C3%A7%C3%A3o#d%C3%A9cimo-primeiro-passo
-    def __send_data(self, method, endpoint, data):
+    def __send_data(self, method, endpoint, data, response_code_ok):
         self.__last_response = ""
+        self.__last_response_code = 0
         request_time = self.__get_request_time()
         body = data
         signature = self.__sign_body(
@@ -78,8 +84,8 @@ class IUGU_RSA_SAMPLE:
                               data=body, headers=headers)
         else:
             raise Exception("method "+method+" not implemented")
-        response_code = r.status_code
-        ret = response_code == 200
+        self.__last_response_code = r.status_code
+        ret = self.__last_response_code == response_code_ok
         self.__last_response = r.text
         return ret
 
@@ -87,12 +93,12 @@ class IUGU_RSA_SAMPLE:
     def signature_validate(self, data):
         method = "POST"
         endpoint = "/v1/signature/validate"
-        return self.__send_data(method, endpoint, data)
+        return self.__send_data(method, endpoint, data, 200)
 
     def transfer_requests(self, data):
         method = "POST"
         endpoint = "/v1/transfer_requests"
-        return self.__send_data(method, endpoint, data)
+        return self.__send_data(method, endpoint, data, 202)
 # ######################################################################################################
 
 
@@ -113,9 +119,9 @@ obj = {
 }
 
 if (iuru_rsa.signature_validate(json.dumps(obj))):
-    print("Response: " + iuru_rsa.getLastResponse())
+    print("Response: " + str(iuru_rsa.getLastResponseCode()) + iuru_rsa.getLastResponse())
 else:
-    print("Error: " + iuru_rsa.getLastResponse())
+    print("Error: " + str(iuru_rsa.getLastResponseCode()) + iuru_rsa.getLastResponse())
 ######################################################################################################
 
 ######################################################################################################
@@ -133,7 +139,7 @@ obj = {
 }
 
 if (iuru_rsa.transfer_requests(json.dumps(obj))):
-    print("Response: " + iuru_rsa.getLastResponse())
+    print("Response: " + str(iuru_rsa.getLastResponseCode()) + iuru_rsa.getLastResponse())
 else:
-    print("Error: " + iuru_rsa.getLastResponse())
+    print("Error: " + str(iuru_rsa.getLastResponseCode()) + iuru_rsa.getLastResponse())
 ######################################################################################################
